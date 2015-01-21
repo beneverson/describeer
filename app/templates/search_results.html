@@ -1,0 +1,8 @@
+{% extends 'bootstrap.html' %}
+
+{% block content %}
+	<h1> Search results for "{{ query }}":</h1>
+	{% for beer in results %}
+		{% include 'beer.html' %}
+	{% endfor %}
+{% endblock %}

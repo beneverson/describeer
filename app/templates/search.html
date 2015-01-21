@@ -2,6 +2,6 @@
 {% block content %}
 		<br>
 		<br>
-		<form style="display: inline;" action="{{ url_for('search') }}" method="post" name="search">
+		<form style="display: inline;" action="{{ url_for('query') }}" method="post" name="search">
 			{{ search_form.hidden_tag() }}{{ search_form.search(size=30) }}<input type="submit" value="Search"></form>
 {% endblock %}
