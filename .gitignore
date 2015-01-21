@@ -1,3 +1,6 @@
 .DS_Store
 *.pyc
 *.csv
+*.doc2vec
+*.doc2vec.syn0.npy
+*.doc2vec.syn1.npy
