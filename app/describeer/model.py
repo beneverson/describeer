@@ -6,7 +6,9 @@ from gensim.models import Doc2Vec
 from collections import defaultdict
 from numpy import argsort
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-from describeer_config import DEFAULT_MODEL_PATH, DEFAULT_CSV_PATH, style_column, name_column, rating_column
+from describeer_config import DEFAULT_MODEL_PATH, DEFAULT_CSV_PATH, N_SEARCH_RESULTS, style_column, name_column, overall_score_column
+import pdb
+
 
 # variables
 _model = None
@@ -25,18 +27,23 @@ def tokenize_beer_noun(beer_noun, reverse=False):
 		return beer_noun.replace('_', ' ')
 	return beer_noun.replace(' ', '_')
 
+def init_model(model_path = DEFAULT_MODEL_PATH):
+	global _model
+	_model = Doc2Vec.load(model_path)
+
 # TODO: add cPickle functionality to speed this up
 def init_lookups():
 
-	# variables
+	# glabal variables
 	global _name_to_style
 	global _name_to_popularity
 	global _name_to_rating
 	global _style_list
 	global _name_list
 
+	# local variables
 	_name_to_popularity_not_norm = defaultdict(int)
-	_name_to_rating_not_norm = defaultdict(int)
+	_name_to_rating_not_norm = defaultdict(float)
 	total_reviews = 0 
 	max_reviews_any_beer = 0
 
@@ -45,31 +52,36 @@ def init_lookups():
 		reader = csv.reader(f)
 		next(reader, None) # skip the header
 		for row in reader:
-			beer_name = tokenize_beer_noun(row[name_column])
-			beer_style = tokenize_beer_noun(row[style_column])
-			beer_rating = int(row[rating_column])
 
-			# increment this beer's overall popularity
-			_name_to_popularity_not_norm[beer_name] += 1 
+			try:
+				beer_name = tokenize_beer_noun(row[name_column])
+				beer_style = tokenize_beer_noun(row[style_column])
+				beer_rating = float(row[overall_score_column])
 
-			# update the max reviews for any one beer
-			if _name_to_popularity_not_norm[beer_name] > max_reviews_any_beer:
-				max_reviews_any_beer = _name_to_popularity_not_norm[beer_name]
+				# increment this beer's overall popularity
+				_name_to_popularity_not_norm[beer_name] += 1 
 
-			# increment this beer's overall rating
-			_name_to_rating_not_norm[beer_name] += beer_rating
+				# update the max reviews for any one beer
+				if _name_to_popularity_not_norm[beer_name] > max_reviews_any_beer:
+					max_reviews_any_beer = _name_to_popularity_not_norm[beer_name]
 
-			# init the other lookups
-			if beer_name not in _name_to_style.keys():
-				_name_to_style[beer_name] = beer_style
+				# increment this beer's overall rating
+				_name_to_rating_not_norm[beer_name] += beer_rating
 
-			if beer_name not in _name_list:
-				_name_list.append(beer_name)
+				# init the other lookups
+				if beer_name not in _name_to_style.keys():
+					_name_to_style[beer_name] = beer_style
 
-			if beer_style not in _style_list:
-				_style_list.append(beer_style)
+				if beer_name not in _name_list:
+					_name_list.append(beer_name)
 
-			total_reviews += 1 # increment total reviews
+				if beer_style not in _style_list:
+					_style_list.append(beer_style)
+
+				total_reviews += 1 # increment total reviews
+			
+			except ValueError as e:
+				print "WARNING: attempt to parse " + str(row)  + " failed. Initialization continuing."
 
 	# populate _name_to_rating with average rating per review for each beer name
 	for rated_beer in _name_to_rating_not_norm.keys():
@@ -117,15 +129,11 @@ def get_relevant_terms(positive=[], negative=[], use_cosmul = False, returnable_
 
 	return relevant_terms
 
-def init_model(model_path = DEFAULT_MODEL_PATH):
-	global _model
-	_model = Doc2Vec.load(model_path)
-
 # parse a search term into positive and negative terms
 # and feed to get_relevant_terms function
 def search_beers(positive_search_terms, negative_search_terms, n_results = N_SEARCH_RESULTS):
 
-	# WARNING: assuming positive_search_terms and negative_search_terms are parsed already
+	# WARNING: assuming positive_search_terms and negative_search_terms are parsed lists already
 	# TODO: put parsing logic here, using regex
 
 	# get beer relevance scores
@@ -134,12 +142,9 @@ def search_beers(positive_search_terms, negative_search_terms, n_results = N_SEA
 	# get style relevance scores
 	relevant_styles = get_relevant_terms(positive=positive_search_terms, negative=negative_search_terms, returnable_words=_style_list)
 
-	
-
-
-
-
 # initialization
 def initialize():
 	init_model()
 	init_lookups()
+
+initialize()
