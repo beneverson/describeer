@@ -175,16 +175,37 @@ def calculate_beer_score(relevant_beers=[], relevant_styles=[]):
 	# return a sorted list of tuples of scored beers
 	return sorted(scored_beers.item(), key=itemgetter(1))
 
-# parse a search term into positive and negative terms
-# and feed to get_relevant_terms function
-def search_beers(positive_search_terms=[], negative_search_terms=[], n_results = dbc.N_SEARCH_RESULTS):
+# parse search terms from a query string into two lists
+# WARNING: Currently no support for phrases (e.g. Sierra Nevada Pale Ale)
+# for this functionality, it is necessary to pre-tokenize the input.
+# TODO: Use regex to support this kind of input
+def parse_search_terms(query_string):
 
-	# WARNING: assuming positive_search_terms and negative_search_terms are parsed lists already
-	# TODO: put parsing logic here, using regex
+	positive_terms = []
+	negative_terms = []
+	all_terms = query_string.split()
 
-	# WARNING: hardcoding in some dummy data here
-	positive_search_terms = ['Sierra Nevada Pale Ale', 'dark', 'roasty']
-	negative_search_terms = ['bitter', 'fruity', 'hoppy']
+	# populate the positive and negative 
+	# lists using a simple flaggind scheme
+	positive = True
+	for term in all_terms:
+		if term is '-':
+			positive = False
+		elif term is '+':
+			positive = True
+		elif positive:
+			positive_terms.append(term)
+		else:
+			negative_terms.append(term)
+
+	return {'positive_terms':positive_terms, 'negative_terms':negative_terms}
+
+# generate beer score for a given query string
+def search_beers(query_string, n_results = dbc.N_SEARCH_RESULTS):
+	# parse query into positive and negative terms
+	parsed_terms_dictionary = parse_search_terms(query_string)
+	positive_search_terms = parsed_terms_dictionary['positive_terms']
+	negative_search_terms = parsed_terms_dictionary['negative_terms']
 
 	# get beer relevance scores
 	_relevant_beers = get_relevant_terms(positive=positive_search_terms, negative=negative_search_terms, returnable_words=_name_list)
@@ -197,12 +218,7 @@ def search_beers(positive_search_terms=[], negative_search_terms=[], n_results =
 
 	print _scored_beers[:n_results]
 
-
 # initialization
 def initialize():
 	init_model()
 	init_lookups()
-
-# TESTING
-initialize()
-search_beers()
