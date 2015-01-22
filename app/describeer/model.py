@@ -13,7 +13,6 @@ import os
 
 import pdb
 
-
 # variables
 _model = None
 
@@ -35,10 +34,9 @@ def init_model(model_path = dbc.DEFAULT_MODEL_PATH):
 	global _model
 	_model = Doc2Vec.load(model_path)
 
-# TODO: add cPickle functionality to speed this up
 def init_lookups():
 
-	# glabal variables
+	# global variables
 	global _name_to_style
 	global _name_to_popularity
 	global _name_to_rating
