@@ -10,7 +10,7 @@ def before_request():
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html', title='Home', search_form=g.search_form)
+	return render_template('index.html', title='Home', search_form=g.search_form)
     
 @app.route('/search', methods=['POST'])
 def search():
@@ -20,6 +20,5 @@ def search():
     
 @app.route('/search_results/<query>')
 def search_results(query):
-    dummy_data = [{'name':'Bud Light', 'ABV':5.2, 'score':0.51}, 
-    {'name':'Sierra Nevada Pale Ale', 'ABV':6.1, 'score':0.42}]
-    return render_template('search_results.html', query=query, results=dummy_data)
+	likely_beers = app.beer_model.search_beers(query.encode('utf-8'))
+	return render_template('search_results.html', query=query, results=likely_beers)

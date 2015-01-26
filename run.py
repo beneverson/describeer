@@ -1,3 +1,5 @@
 #!/usr/bin/env python
 from app import app
-app.run(debug = True)
+from app.model import DescribeerModel
+app.beer_model = DescribeerModel()
+app.run(debug = False)

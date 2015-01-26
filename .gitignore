@@ -5,3 +5,4 @@
 *.doc2vec.syn0.npy
 *.doc2vec.syn1.npy
 *.pickle
+*.tar

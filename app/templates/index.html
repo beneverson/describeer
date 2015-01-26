@@ -3,5 +3,5 @@
 		<br>
 		<br>
 		<form style="display: inline;" action="{{ url_for('search') }}" method="post" name="search">
-			{{ search_form.hidden_tag() }}{{ search_form.search(size=30) }}<input type="submit" value="Search"></form>
+			{{ search_form.hidden_tag() }}{{ search_form.search(size=100) }}<input type="submit" value="Search"></form>
 {% endblock %}
