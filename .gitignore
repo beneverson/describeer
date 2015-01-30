@@ -6,3 +6,4 @@
 *.doc2vec.syn1.npy
 *.pickle
 *.tar
+*.txt

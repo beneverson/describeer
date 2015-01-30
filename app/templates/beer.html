@@ -1,3 +1,18 @@
-<h2>{{ beer['name'] }}</h2>
-<h3>Score: {{ beer['score'] }}<h3>
-<h3>Style: {{ beer['style'] }}<h3>
+<div class="brcontainer" style="padding:20px">
+<div class="row" style="padding:5px">
+	<div class="col-md-1"></div>
+	<div class="col-md-2" style="background-color:white">
+		<img src="http://cdn.beeradvocate.com/im/beers/{{ beer['id'] }}.jpg" class="img-thumbnail"/>
+	</div>
+	<div class="col-md-9">
+		<div class="row" style="line-height:20px" >
+			<p class="text-left">
+				<h1 style="margin-top:-15px"> {{ beer['name'] }} </h1> 
+				<h3 style="color:#777"> {{ beer['style'] }} </h3>
+				<img src="static/wordclouds/{{ beer['id'] }}.0.png" class="img-thumbnail"/>
+				<!--<h3> {{ beer['score'] }}</h3>-->
+			</p>
+		</div>
+	</div>
+</div>
+</div>

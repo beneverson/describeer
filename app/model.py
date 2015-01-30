@@ -26,6 +26,12 @@ class DescribeerModel(object):
 		self._name_to_popularity = {}
 		self._name_list = []
 		self._style_list = []
+		self._name_to_id = {}
+		
+		# load in the list of descriptors to use
+		# NOTE: this must be loaded from pickle, since it 
+		# cannot be derived from the csv file.
+		self._top_descriptors = pickle.load(open(dbc.DEFAULT_PICKLE_PATH + dbc.descriptors_path, 'rb'))
 
 		try:
 			print "Trying to load pre-pickled data..."
@@ -34,6 +40,7 @@ class DescribeerModel(object):
 			self._name_to_rating = pickle.load(open(dbc.DEFAULT_PICKLE_PATH + dbc.name_to_rating_path, 'rb'))
 			self._style_list = pickle.load(open(dbc.DEFAULT_PICKLE_PATH + dbc.style_list_path, 'rb'))
 			self._name_list = pickle.load(open(dbc.DEFAULT_PICKLE_PATH + dbc.name_list_path, 'rb'))
+			self._name_to_id = pickle.load(open(dbc.DEFAULT_PICKLE_PATH + dbc.name_to_id_path, 'rb'))
 			return
 		except IOError:
 			print "Can't find pickles, loading all data..."
@@ -54,6 +61,7 @@ class DescribeerModel(object):
 					beer_name = self.tokenize_beer_noun(row[dbc.name_column])
 					beer_style = self.tokenize_beer_noun(row[dbc.style_column])
 					beer_rating = float(row[dbc.overall_score_column])
+					beer_id = str(row[dbc.id_column])
 
 					# increment this beer's overall popularity
 					_name_to_popularity_not_norm[beer_name] += 1 
@@ -68,6 +76,9 @@ class DescribeerModel(object):
 					# init the other lookups
 					if beer_name not in self._name_to_style.keys():
 						self._name_to_style[beer_name] = beer_style
+
+					if beer_name not in self._name_to_id.keys():
+						self._name_to_id[beer_name] = beer_id
 
 					if beer_name not in self._name_list:
 						self._name_list.append(beer_name)
@@ -94,6 +105,7 @@ class DescribeerModel(object):
 		pickle.dump(self._name_to_rating, open(str(dbc.DEFAULT_PICKLE_PATH + dbc.name_to_rating_path), "w+"))
 		pickle.dump(self._name_list, open(str(dbc.DEFAULT_PICKLE_PATH + dbc.name_list_path), "w+"))
 		pickle.dump(self._style_list, open(str(dbc.DEFAULT_PICKLE_PATH + dbc.style_list_path), "w+"))
+		pickle.dump(self._name_to_id, open(str(dbc.DEFAULT_PICKLE_PATH + dbc.name_to_id_path), "w+"))
 
 	def tokenize_beer_noun(self, beer_noun, reverse=False):
 		if reverse: # de-tokenize the term
@@ -159,10 +171,15 @@ class DescribeerModel(object):
 			except UnicodeDecodeError:
 				import pdb; pdb.set_trace()
 
-			# calculate the score on this beerusing a weighted sum of other scores
+			# add the id of the beer to its dict
+			scored_beer['id'] = self._name_to_id[beer_name]
+
+			# calculate the score on this beer using a weighted sum of other scores
 			# TODO: check that these numbers make sense
 			
-			beer_score = dbc.BEER_SIM_WEIGHT * relevant_beers[beer_name] + dbc.STYLE_SIM_WEIGHT * relevant_styles[beer_style] + dbc.BEER_POP_WEIGHT * self._name_to_popularity[beer_name] + dbc.BEER_RATING_WEIGHT * self._name_to_rating[beer_name]
+			beer_score_num = dbc.BEER_SIM_WEIGHT * relevant_beers[beer_name] + dbc.STYLE_SIM_WEIGHT * relevant_styles[beer_style] + dbc.BEER_POP_WEIGHT * self._name_to_popularity[beer_name] + dbc.BEER_RATING_WEIGHT * self._name_to_rating[beer_name]
+
+			beer_score = beer_score_num/(dbc.BEER_SIM_WEIGHT + dbc.STYLE_SIM_WEIGHT + dbc.BEER_POP_WEIGHT + dbc.BEER_RATING_WEIGHT)
 
 			try:
 				scored_beer['score'] = float(beer_score)
@@ -172,7 +189,6 @@ class DescribeerModel(object):
 			scored_beers.append(scored_beer)
 
 		# return a sorted list of beer disctionaries
-		print scored_beers
 		return sorted(scored_beers, key=lambda d:d['score'], reverse=True)
 
 	# parse search terms from a query string into two lists
@@ -205,11 +221,33 @@ class DescribeerModel(object):
 		# parse query into positive and negative terms
 		parsed_terms_dictionary = self.parse_search_terms(query_string)
 		positive_search_terms = parsed_terms_dictionary['positive_terms']
-		print "positive search terms" + str(positive_search_terms)
 		negative_search_terms = parsed_terms_dictionary['negative_terms']
 
+		# determine the list of beers that it's OK to return
+		# by subtracting the search terms from all possible beer names
+		returnable_beers_set = set(self._name_list) - set(positive_search_terms + negative_search_terms)
+		returnable_beers = list(returnable_beers_set)
+
 		# get beer relevance scores
-		_relevant_beers = self.get_relevant_terms(positive=positive_search_terms, negative=negative_search_terms, returnable_words=self._name_list)
+		_relevant_beers = self.get_relevant_terms(positive=positive_search_terms, negative=negative_search_terms, returnable_words=returnable_beers)
+
+		# get style relevance scores
+		_relevant_styles = self.get_relevant_terms(positive=positive_search_terms, negative=negative_search_terms, returnable_words=self._style_list)
+
+		# figure out the scores for these beers based on above scores
+		_scored_beers = self.calculate_beer_score(relevant_beers=_relevant_beers, relevant_styles=_relevant_styles)
+
+		return _scored_beers[:n_results]
+
+	def search_beers_split(self, positive_search_terms, negative_search_terms, n_results = dbc.N_SEARCH_RESULTS):
+
+		# determine the list of beers that it's OK to return
+		# by subtracting the search terms from all possible beer names
+		returnable_beers_set = set(self._name_list) - set(positive_search_terms + negative_search_terms)
+		returnable_beers = list(returnable_beers_set)
+
+		# get beer relevance scores
+		_relevant_beers = self.get_relevant_terms(positive=positive_search_terms, negative=negative_search_terms, returnable_words=returnable_beers)
 
 		# get style relevance scores
 		_relevant_styles = self.get_relevant_terms(positive=positive_search_terms, negative=negative_search_terms, returnable_words=self._style_list)
