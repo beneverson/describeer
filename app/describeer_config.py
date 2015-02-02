@@ -18,7 +18,7 @@ overall_score_column = 8
 id_column = 2
 
 # weights for overall scoring of beers
-STYLE_SIM_WEIGHT = 0.5
+STYLE_SIM_WEIGHT = 1.35
 BEER_SIM_WEIGHT = 0.5
 BEER_POP_WEIGHT = 0.0
-BEER_RATING_WEIGHT = 0.0
+BEER_RATING_WEIGHT = 0.1
