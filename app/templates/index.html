@@ -4,15 +4,12 @@
 		<br>
 		<form class="form-inline" action="{{ url_for('search') }}" method="GET" name="search">
 			<div class="row">
-				<div class="col-md-1"></div>
-				<div class="col-md-7">
-					<h2> I want my beer to be like this: </h2>
+				<div class="col-md-1" style="display:inline"></div>
+				<div class="col-md-4" style="margin-top:-20px; display:inline">
+					<h2 class="text-right"> I want my beer to be </h2>
 				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-3"></div>
-				<div class="col-md-5">
-					<select name="pos" id="pos-form" class="select2 form-control" multiple="multiple" style="width:100%">
+				<div class="col-md-5" style="display:inline">
+					<select name="pos" id="pos-form" class="select2 form-control" multiple="multiple" style="display:inline; width:100%">
 					<optgroup label="Descriptors">
 					{% for descriptor in beerdescriptors %}
 						<option value="{{ descriptor }}">{{ descriptor }}</option>
@@ -27,28 +24,29 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-md-4"></div>
-				<div class="col-md-3">
-				<h2> but not like this: </h2>
-				</div>
+			<br>
+			<br>
 			</div>
 			<div class="row">
-				<div class="col-md-5"></div>
-				<div class="col-md-5">
-					<select name="neg" class="select2 form-control" multiple="multiple" style="width:100%"> 
-					<optgroup label="Descriptors">
-					{% for descriptor in beerdescriptors %}
-						<option value="{{ descriptor }}">{{ descriptor }}</option>
-					{% endfor %}
-					</optgroup>
-					<optgroup label="Beers">
-					{% for beer in beernames %}
-						<option value="{{ beer['value'] }}">{{ beer['displayname'] }}</option>
-					{% endfor %}
-					</optgroup>
-					</select>
+				<div class="col-md-2" style="display:inline"></div>
+				<div class="col-md-2" style="margin-top:-20px; display:inline">
+					<h2 class="text-right"> but not </h2>
 				</div>
-				<div class="col-md-1">
+				<div class="col-md-5" style="display:inline">
+				<select name="neg" class="select2 form-control" multiple="multiple" style="display:inline; width: 100%"> 
+				<optgroup label="Descriptors">
+				{% for descriptor in beerdescriptors %}
+					<option value="{{ descriptor }}">{{ descriptor }}</option>
+				{% endfor %}
+				</optgroup>
+				<optgroup label="Beers">
+				{% for beer in beernames %}
+					<option value="{{ beer['value'] }}">{{ beer['displayname'] }}</option>
+				{% endfor %}
+				</optgroup>
+				</select>
+				</div>
+				<div class="col-md-3" style="display:inline">
 					<input class="btn btn-default" type="submit" value="Search">
 				</div>
 			</div>	
