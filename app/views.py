@@ -1,6 +1,5 @@
 from flask import render_template, redirect, url_for, request, jsonify
 from app import app
-from forms import SearchForm
 from config import MAX_SEARCH_RESULTS
 
 @app.before_request
