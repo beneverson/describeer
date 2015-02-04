@@ -7,3 +7,5 @@
 *.pickle
 *.tar
 *.txt
+*.ipynb
+*.conf
