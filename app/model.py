@@ -10,6 +10,8 @@ import describeer_config as dbc
 from operator import itemgetter
 import cPickle as pickle
 import os
+import json
+import urllib
 
 class DescribeerModel(object):
 	def __init__(self):
@@ -27,8 +29,9 @@ class DescribeerModel(object):
 		self._name_list = []
 		self._style_list = []
 		self._name_to_id = {}
-		
+
 		# load in the list of descriptors to use
+		# and the beer_id to beerinfo dictionary
 		# NOTE: this must be loaded from pickle, since it 
 		# cannot be derived from the csv file.
 		self._top_descriptors = pickle.load(open(dbc.DEFAULT_PICKLE_PATH + dbc.descriptors_path, 'rb'))
@@ -62,6 +65,7 @@ class DescribeerModel(object):
 					beer_style = self.tokenize_beer_noun(row[dbc.style_column])
 					beer_rating = float(row[dbc.overall_score_column])
 					beer_id = str(row[dbc.id_column])
+					brewer_id = str(row[dbc.brewerid_column])
 
 					# increment this beer's overall popularity
 					_name_to_popularity_not_norm[beer_name] += 1 
@@ -78,7 +82,7 @@ class DescribeerModel(object):
 						self._name_to_style[beer_name] = beer_style
 
 					if beer_name not in self._name_to_id.keys():
-						self._name_to_id[beer_name] = beer_id
+						self._name_to_id[beer_name] = (beer_id, brewer_id)
 
 					if beer_name not in self._name_list:
 						self._name_list.append(beer_name)
@@ -172,7 +176,10 @@ class DescribeerModel(object):
 				import pdb; pdb.set_trace()
 
 			# add the id of the beer to its dict
-			scored_beer['id'] = self._name_to_id[beer_name]
+			scored_beer['id'] = self._name_to_id[beer_name][0]
+
+			# and the id of the brewer
+			scored_beer['brewerid'] = self._name_to_id[beer_name][1]
 
 			# calculate the score on this beer using a weighted sum of other scores
 			# TODO: check that these numbers make sense

@@ -9,6 +9,8 @@ style_list_path = 'stylelist.pickle'
 name_list_path = 'namelist.pickle'
 name_to_id_path = 'nametoid.pickle'
 descriptors_path = 'descriptors.pickle'
+beerid_to_brewerid_path = 'beeridtobrewerid.pickle'
+beerid_to_beerinfo_path = 'beerid_to_beerinfo.pickle'
 
 N_SEARCH_RESULTS = 10
 
@@ -16,6 +18,7 @@ style_column = 5
 name_column = 4
 overall_score_column = 8
 id_column = 2
+brewerid_column = 3
 
 # weights for overall scoring of beers
 STYLE_SIM_WEIGHT = 1.25
